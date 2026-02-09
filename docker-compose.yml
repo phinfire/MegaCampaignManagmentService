@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    container_name: megacampaign-app
+    ports:
+      - "8085:8080"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/megacampaign
+      SPRING_DATASOURCE_USERNAME: megacampaign
+      SPRING_DATASOURCE_PASSWORD: secret
+
+  postgres:
+    image: postgres:18.1
+    container_name: megacampaign-postgres
+    environment:
+      POSTGRES_DB: megacampaign
+      POSTGRES_USER: megacampaign
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:
