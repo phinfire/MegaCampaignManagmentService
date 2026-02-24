@@ -64,6 +64,10 @@ public class MegaCampaignController {
         if (existing.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        
+        if (hasNoValidUpdates(updates)) {
+            return ResponseEntity.badRequest().build();
+        }
         System.out.println("Received update for campaign " + id + ": " + updates);
 
         MegaCampaign campaign = existing.get();
@@ -101,6 +105,15 @@ public class MegaCampaignController {
         if (updates.getPossibleKeys() != null) {
             campaign.setPossibleKeys(updates.getPossibleKeys());
         }
+        if (updates.getCk3MapGeoJsonUrl() != null) {
+            campaign.setCk3MapGeoJsonUrl(updates.getCk3MapGeoJsonUrl());
+        }
+        if (updates.getCk3RegionsConfigUrl() != null) {
+            campaign.setCk3RegionsConfigUrl(updates.getCk3RegionsConfigUrl());
+        }
+        if (updates.getNationsJsonUrl() != null) {
+            campaign.setNationsJsonUrl(updates.getNationsJsonUrl());
+        }
         
         MegaCampaign saved = campaignRepository.save(campaign);
         return ResponseEntity.ok(saved);
@@ -117,5 +130,22 @@ public class MegaCampaignController {
         }
         campaignRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private boolean hasNoValidUpdates(MegaCampaignUpdate updates) {
+        return updates.getName() == null &&
+               updates.getSignupsOpen() == null &&
+               updates.getSignupDeadlineDate() == null &&
+               updates.getPickDeadline() == null &&
+               updates.getFirstSessionDate() == null &&
+               updates.getFirstEu4SessionDate() == null &&
+               updates.getModeratorIds() == null &&
+               updates.getCk3LobbiesIdentifiers() == null &&
+               updates.getEu4LobbiesIdentifiers() == null &&
+               updates.getVic3LobbyIdentifiers() == null &&
+               updates.getPossibleKeys() == null &&
+               updates.getCk3MapGeoJsonUrl() == null &&
+               updates.getCk3RegionsConfigUrl() == null &&
+               updates.getNationsJsonUrl() == null;
     }
 }

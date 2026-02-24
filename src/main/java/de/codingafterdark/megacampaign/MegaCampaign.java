@@ -35,6 +35,15 @@ public class MegaCampaign {
 
     @Column
     private Instant firstEu4SessionDate;
+    
+    @Column 
+    private String ck3MapGeoJsonUrl;
+
+    @Column 
+    private String ck3RegionsConfigUrl;
+
+    @Column
+    private String nationsJsonUrl;
 
     @ElementCollection
     @CollectionTable(name = "mega_campaign_moderator_ids", joinColumns = @JoinColumn(name = "mega_campaign_id"))

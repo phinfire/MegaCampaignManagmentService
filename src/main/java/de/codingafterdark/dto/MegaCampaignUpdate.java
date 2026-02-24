@@ -20,4 +20,7 @@ public class MegaCampaignUpdate {
     private List<String> eu4LobbiesIdentifiers;
     private List<String> vic3LobbyIdentifiers;
     private List<String> possibleKeys;
+    private String ck3MapGeoJsonUrl;
+    private String ck3RegionsConfigUrl;
+    private String nationsJsonUrl;
 }
