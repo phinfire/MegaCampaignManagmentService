@@ -32,7 +32,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/mcbackend:latest
+          tags: ghcr.io/${{ github.repository_owner }}/megacampaignservice:latest
 
       - name: Copy compose file to VPS
         uses: appleboy/scp-action@v0.1.7

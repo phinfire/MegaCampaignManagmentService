@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${REPO_OWNER}/mcbackend:latest
+    image: ghcr.io/${REPO_OWNER}/megacampaignservice:latest
     container_name: megacampaign-app
     ports:
       - "${API_PORT}:8080"
