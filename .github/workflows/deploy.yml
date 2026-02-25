@@ -50,8 +50,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            mkdir -p /opt/mcbackend
-            cd /opt/mcbackend
+            mkdir -p /opt/megacampaign
+            cd /opt/megacampaign
 
             # Use consistent name
             mv docker-compose.vps.yml docker-compose.yml
