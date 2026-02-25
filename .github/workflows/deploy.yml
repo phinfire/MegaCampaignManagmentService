@@ -41,7 +41,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "./docker-compose.vps.yml"
-          target: "/opt/mcbackend/"
+          target: "/opt/megacampaign/"
 
       - name: Deploy on VPS over SSH
         uses: appleboy/ssh-action@v0.1.7
@@ -53,10 +53,8 @@ jobs:
             mkdir -p /opt/megacampaign
             cd /opt/megacampaign
 
-            # Use consistent name
             mv docker-compose.vps.yml docker-compose.yml
 
-            # Create .env for Docker Compose
             cat > .env << EOF
             REPO_OWNER=${{ github.repository_owner }}
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}
@@ -64,12 +62,11 @@ jobs:
             POSTGRES_DB=${{ secrets.POSTGRES_DB }}
             AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }}
             ADMIN_DISCORD_ID=${{ secrets.ADMIN_DISCORD_ID }}
-            API_PORT=${{ secrets.API_PORT || 8085 }}
+            API_PORT=${{ secrets.API_PORT || 8086 }}
             EOF
 
-            # Pull new image and restart containers
             docker compose --env-file .env pull
             docker compose --env-file .env up -d --remove-orphans
 
-            # Optional: clean unused Docker resources
-            docker system prune -f
+            sleep 10
+            curl -f http://localhost:${{ secrets.API_PORT || 8086 }}/megacampaign/health || exit 1
