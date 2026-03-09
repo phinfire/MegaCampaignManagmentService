@@ -12,7 +12,6 @@ import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.List;
 
 @Component
 public class JwtTokenProvider {
@@ -58,6 +57,38 @@ public class JwtTokenProvider {
             throw new JwtException("Invalid JWT token: " + e.getMessage());
         } catch (IllegalArgumentException e) {
             throw new JwtException("JWT claims string is empty: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Extracts the user's ID from the JWT token
+     * @param token The JWT token
+     * @return The user's ID, or null if token is invalid or userId is missing
+     */
+    public String getUserId(String token) {
+        try {
+            Claims claims = validateToken(token);
+            return claims.get("userId", String.class);
+        } catch (JwtException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Extracts the user's name from the JWT token
+     * @param token The JWT token
+     * @return The user's name, or null if token is invalid
+     */
+    public String getUserName(String token) {
+        try {
+            Claims claims = validateToken(token);
+            String name = claims.get("name", String.class);
+            if (name == null) {
+                name = claims.get("username", String.class);
+            }
+            return name;
+        } catch (JwtException e) {
+            return null;
         }
     }
 

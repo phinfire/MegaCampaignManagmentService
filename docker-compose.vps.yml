@@ -13,6 +13,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       AUTH_SERVICE_URL: ${AUTH_SERVICE_URL}
       ADMIN_DISCORD_ID: ${ADMIN_DISCORD_ID}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/megacampaign/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
 
   postgres:

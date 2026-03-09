@@ -1,103 +1,101 @@
-# MegaCampaign Management Service
-
 ## API Endpoints
 
-### Campaigns
+### SignupController
 
-#### List all campaigns
-```
-GET /campaigns
-```
-Public endpoint. Returns all campaigns with their configuration.
+- **POST /campaigns/{campaignId}/signups**
+	- Headers: `Authorization: Bearer <token>`
+	- Body:
+		```json
+		{
+			"userId": "",
+			"preferenceKeys": []
+		}
+		```
+	- Creates a signup for a campaign.
 
-#### Create campaign
-```
-POST /campaigns?name=YourName
-Authorization: Bearer <jwt>
-```
-Admin only. Creates a new campaign with the provided name. Returns the created campaign object with generated ID.
+- **GET /campaigns/{campaignId}/signups/count**
+	- Returns the count of distinct users signed up for a campaign.
 
-#### Update campaign
-```
-PATCH /campaigns/{id}
-Authorization: Bearer <jwt>
-Content-Type: application/json
-```
-Admin only. Updates specified fields of a campaign (partial update). Send only the fields you want to change.
+- **GET /campaigns/{campaignId}/signups/latest**
+	- Returns the latest signup for each user in a campaign.
 
-#### Delete campaign
-```
-DELETE /campaigns/{id}
-Authorization: Bearer <jwt>
-```
-Admin only. Deletes a campaign and all associated signups.
+- **GET /campaigns/{campaignId}/signups**
+	- Headers: `Authorization: Bearer <token>` (admin only)
+	- Returns the full signup history for a campaign.
 
 ---
 
-### Signups
+### AssignmentController
 
-#### Create signup
-```
-POST /campaigns/{campaignId}/signups
-Content-Type: application/json
+- **PUT /campaigns/{campaignId}/assignments**
+	- Headers: `Authorization: Bearer <token>` (admin only)
+	- Body:
+		```json
+		{
+			"assignments": [
+				{
+					"userId": "",
+					"regionKey": ""
+				}
+			]
+		}
+		```
+	- Updates assignments for a campaign.
 
-{
-  "userId": "user123",
-  "enteredBy": "user123",
-  "preferenceKeys": ["key1", "key2", "key3"]
-}
-```
-Public endpoint. Creates an immutable signup record. Rejects if campaign's `signupsOpen` is false.
-
-#### Get signup count
-```
-GET /campaigns/{campaignId}/signups/count
-```
-Public endpoint. Returns the number of distinct users who have signed up for a campaign.
-
-#### Get latest signups
-```
-GET /campaigns/{campaignId}/signups/latest
-```
-Public endpoint. Returns the most recent signup for each user in a campaign.
-
-#### Get signup history (full audit trail)
-```
-GET /campaigns/{campaignId}/signups
-Authorization: Bearer <jwt>
-```
-Admin only. Returns all signup submissions (full history) including timestamp and who entered each signup.
+- **GET /campaigns/{campaignId}/assignments**
+	- Headers: `Authorization: Bearer <token>` (admin only)
+	- Returns all assignments for a campaign.
 
 ---
 
-### Assignments
+### MegaCampaignController
 
-#### Update assignments (bulk replace)
-```
-PUT /campaigns/{campaignId}/assignments
-Authorization: Bearer <jwt>
-Content-Type: application/json
+- **GET /campaigns**
+	- Returns all campaigns.
 
-{
-  "assignments": [
-    {
-      "userId": "user123",
-      "regionKey": "region_a"
-    },
-    {
-      "userId": "user456",
-      "regionKey": "region_b"
-    }
-  ]
-}
-```
-Admin only. Atomically replaces all assignments for a campaign. Each user gets exactly one region, and each region is assigned to at most one user. Unassigned users and unassigned regions are acceptable (leave them out of the list).
+- **POST /campaigns?name=...**
+	- Headers: `Authorization: Bearer <token>` (admin only)
+	- Creates a new campaign.
 
-#### Get assignments
-```
-GET /campaigns/{campaignId}/assignments
-Authorization: Bearer <jwt>
-```
-Admin only. Returns all current assignments for a campaign.
+- **PATCH /campaigns/{id}**
+	- Headers: `Authorization: Bearer <token>` (admin only)
+	- Body:
+		```json
+		{
+			"name": "",
+			"signupsOpen": "",
+			"signupDeadlineDate": "",
+			"pickDeadline": "",
+			"firstSessionDate": "",
+			"firstEu4SessionDate": "",
+			"moderatorIds": [],
+			"ck3LobbiesIdentifiers": [],
+			"eu4LobbiesIdentifiers": [],
+			"vic3LobbyIdentifiers": [],
+			"possibleKeys": [],
+			"ck3MapGeoJsonUrl": "",
+			"ck3RegionsConfigUrl": "",
+			"nationsJsonUrl": ""
+		}
+		```
+	- Updates campaign details.
+
+- **DELETE /campaigns/{id}**
+	- Headers: `Authorization: Bearer <token>` (admin only)
+	- Deletes a campaign.
 
 ---
+
+### MiscController
+
+- **GET /health**
+	- Returns status and timestamp for health check.
+
+---
+
+### Notes for Frontend Developers
+
+- All endpoints requiring authentication expect an `Authorization` header with a valid JWT token.
+- Request bodies should use the JSON structure shown above, with keys only (values are examples or left blank).
+- For more details on response formats, see the corresponding DTO classes in the backend code.
+- If you need a more formal API spec, consider generating an OpenAPI/Swagger document in the future.
