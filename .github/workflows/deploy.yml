@@ -68,5 +68,14 @@ jobs:
             docker compose --env-file .env pull
             docker compose --env-file .env up -d --remove-orphans
 
-            sleep 10
-            curl -f http://localhost:${{ secrets.API_PORT || 8086 }}/megacampaign/health || exit 1
+            for i in {1..30}; do
+              if curl -f http://localhost:${{ secrets.API_PORT || 8086 }}/megacampaign/health; then
+                echo "Health check passed"
+                exit 0
+              fi
+              echo "Health check attempt $i failed, retrying in 2 seconds..."
+              sleep 2
+            done
+            
+            echo "Health check failed after 60 seconds"
+            exit 1

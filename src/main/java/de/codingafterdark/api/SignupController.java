@@ -2,7 +2,6 @@ package de.codingafterdark.api;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import de.codingafterdark.dto.SignupHistoryView;
 import de.codingafterdark.dto.SignupLatestView;
 import de.codingafterdark.dto.SignupRequest;
 import de.codingafterdark.exception.BadSignupException;
