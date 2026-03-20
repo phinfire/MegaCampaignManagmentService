@@ -68,7 +68,6 @@ public class MegaCampaignController {
         if (hasNoValidUpdates(updates)) {
             return ResponseEntity.badRequest().build();
         }
-        System.out.println("Received update for campaign " + id + ": " + updates);
 
         MegaCampaign campaign = existing.get();
         

@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,7 +45,7 @@ public class AssignmentController {
     }
 
     @PutMapping("/campaigns/{campaignId}/assignments")
-    public ResponseEntity<List<AssignmentView>> updateAssignments(
+    public ResponseEntity<?> updateAssignments(
             @PathVariable Long campaignId,
             @RequestBody AssignmentRequest assignmentRequest,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -55,9 +56,22 @@ public class AssignmentController {
 
         megaCampaignRepository.findById(campaignId)
             .orElseThrow();
-        
-        assignmentRepository.deleteByMegaCampaignId(campaignId);
 
+        var userIds = assignmentRequest.getAssignments().stream()
+            .map(a -> a.getUserId())
+            .collect(Collectors.toList());
+        if (userIds.size() != userIds.stream().distinct().count()) {
+            return ResponseEntity.badRequest().body("Assignment request contains duplicate users");
+        }
+
+        var regionKeys = assignmentRequest.getAssignments().stream()
+            .map(a -> a.getRegionKey())
+            .collect(Collectors.toList());
+        if (regionKeys.size() != regionKeys.stream().distinct().count()) {
+            return ResponseEntity.badRequest().body("Assignment request contains duplicate regions");
+        }
+
+        assignmentRepository.deleteByMegaCampaignId(campaignId);
         for (var entry : assignmentRequest.getAssignments()) {
             assignmentRepository.upsertAssignment(campaignId, entry.getUserId(), entry.getRegionKey());
         }
@@ -70,6 +84,30 @@ public class AssignmentController {
         return ResponseEntity.ok(result);
     }
 
+    @PostMapping("/campaigns/{campaignId}/assignments/{userId}/{regionKey}")
+    public ResponseEntity<?> setAssignment(
+            @PathVariable Long campaignId,
+            @PathVariable String userId,
+            @PathVariable String regionKey,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (!authenticationService.isAuthorizedAdmin(authHeader)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        megaCampaignRepository.findById(campaignId).orElseThrow();
+
+        var existingAssignment = assignmentRepository.findByMegaCampaignIdAndRegionKey(campaignId, regionKey);
+        if (existingAssignment.isPresent() && !existingAssignment.get().getUserId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Region already assigned to another user");
+        }
+
+        assignmentRepository.upsertAssignment(campaignId, userId, regionKey);
+        var assignment = assignmentRepository.findByMegaCampaignIdAndRegionKey(campaignId, regionKey).orElseThrow();
+        return ResponseEntity.ok(AssignmentView.fromAssignment(assignment));
+    }
+
     @GetMapping("/campaigns/{campaignId}/assignments")
     public ResponseEntity<List<AssignmentView>> getAssignments(
             @PathVariable Long campaignId) {
@@ -79,7 +117,6 @@ public class AssignmentController {
         List<AssignmentView> result = assignments.stream()
             .map(AssignmentView::fromAssignment)
             .collect(Collectors.toList());
-
         return ResponseEntity.ok(result);
     }
 
@@ -137,5 +174,21 @@ public class AssignmentController {
             .orElseThrow();
 
         return ResponseEntity.ok(MegaStartPositionView.fromMegaStartPosition(position));
+    }
+
+    @DeleteMapping("/campaigns/{campaignId}/assignments/{userId}")
+    public ResponseEntity<Void> deleteAssignment(
+            @PathVariable Long campaignId,
+            @PathVariable String userId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (!authenticationService.isAuthorizedAdmin(authHeader)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        megaCampaignRepository.findById(campaignId)
+            .orElseThrow();
+
+        assignmentRepository.deleteByUserIdAndMegaCampaignId(userId, campaignId);
+        return ResponseEntity.noContent().build();
     }
 }

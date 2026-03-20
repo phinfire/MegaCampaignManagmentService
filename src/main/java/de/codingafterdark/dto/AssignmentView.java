@@ -29,4 +29,9 @@ public class AssignmentView {
             assignment.getRegionKey()
         );
     }
+
+    @Override
+    public String toString() {
+        return "AssignmentView{id=" + id + ", userId='" + userId + "', regionKey='" + regionKey + "'}";
+    }
 }

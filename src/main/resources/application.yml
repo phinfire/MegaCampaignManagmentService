@@ -16,10 +16,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
 
   sql:
     init:
@@ -33,3 +38,9 @@ management:
   endpoint:
     health:
       show-details: always
+
+discord:
+  notification:
+    enabled: true
+  api:
+    endpoint: ${DISCORD_API_ENDPOINT:}

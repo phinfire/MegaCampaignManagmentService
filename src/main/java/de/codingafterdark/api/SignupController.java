@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import de.codingafterdark.discord.DiscordNotificationService;
 import de.codingafterdark.dto.SignupLatestView;
 import de.codingafterdark.dto.SignupRequest;
 import de.codingafterdark.exception.BadSignupException;
@@ -25,6 +26,7 @@ import de.codingafterdark.exception.NotAnAdminException;
 import de.codingafterdark.megacampaign.MegaCampaign;
 import de.codingafterdark.megacampaign.MegaCampaignRepository;
 import de.codingafterdark.security.AuthenticationService;
+import de.codingafterdark.security.CampaignModerationService;
 import de.codingafterdark.signup.Signup;
 import de.codingafterdark.signup.SignupRepository;
 
@@ -33,14 +35,20 @@ public class SignupController {
     private final SignupRepository signupRepository;
     private final MegaCampaignRepository megaCampaignRepository;
     private final AuthenticationService authenticationService;
+    private final CampaignModerationService campaignModerationService;
+    private final DiscordNotificationService discordNotificationService;
 
     @Autowired
     public SignupController(SignupRepository signupRepository,
             MegaCampaignRepository megaCampaignRepository,
-            AuthenticationService authenticationService) {
+            AuthenticationService authenticationService,
+            CampaignModerationService campaignModerationService,
+            DiscordNotificationService discordNotificationService) {
         this.signupRepository = signupRepository;
         this.megaCampaignRepository = megaCampaignRepository;
         this.authenticationService = authenticationService;
+        this.campaignModerationService = campaignModerationService;
+        this.discordNotificationService = discordNotificationService;
     }
 
     /**
@@ -158,6 +166,14 @@ public class SignupController {
                 enteredBy,
                 signupRequest.getPreferenceKeys());
         Signup saved = signupRepository.save(signup);
+        
+        List<Signup> latestSignups = signupRepository.findLatestSignupsPerUserByCampaignId(campaignId);
+        List<String> userIds = latestSignups.stream()
+                .map(Signup::getUserId)
+                .sorted()
+                .collect(Collectors.toList());
+        discordNotificationService.notifyNewSignups(userIds);
+        
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
@@ -255,6 +271,45 @@ public class SignupController {
                 currentUserId,
                 signupRequest.getPreferenceKeys());
         Signup saved = signupRepository.save(signup);
+        
+        // Notify Discord of new signup
+        List<Signup> latestSignups = signupRepository.findLatestSignupsPerUserByCampaignId(campaignId);
+        List<String> userIds = latestSignups.stream()
+                .map(Signup::getUserId)
+                .sorted()
+                .collect(Collectors.toList());
+        discordNotificationService.notifyNewSignups(userIds);
+        
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
+    }
+
+    /**
+     * Gets an ordered list of user IDs who have signed up for a campaign.
+     * Only moderators of the campaign can access this endpoint.
+     * 
+     * @param campaignId ID of the campaign
+     * @param authHeader Authorization header containing the JWT token of the requester
+     * @return ResponseEntity with an ordered list of signed up user IDs
+     * @throws NoSuchCampaignException if the specified campaign does not exist
+     * @throws NotAnAdminException if the requester is not a moderator of the campaign
+     */
+    @GetMapping("/campaigns/{campaignId}/signups/moderator/users")
+    public ResponseEntity<List<String>> getSignedUpUserIds(
+            @PathVariable Long campaignId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        MegaCampaign campaign = megaCampaignRepository.findById(campaignId)
+                .orElseThrow(() -> new NoSuchCampaignException(campaignId));
+        
+        if (!campaignModerationService.isAuthorizedModerator(authHeader, campaign)) {
+            throw new NotAnAdminException();
+        }
+        
+        List<Signup> latestSignups = signupRepository.findLatestSignupsPerUserByCampaignId(campaignId);
+        List<String> userIds = latestSignups.stream()
+                .map(Signup::getUserId)
+                .sorted()
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(userIds);
     }
 }
