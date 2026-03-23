@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MegaStartPositionRequest {
-    @JsonProperty("start_key")
+    @JsonProperty("startKey")
     private String startKey;
 
-    @JsonProperty("start_data")
+    @JsonProperty("startData")
     private String startData;
 }

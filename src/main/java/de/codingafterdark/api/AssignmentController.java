@@ -142,7 +142,8 @@ public class AssignmentController {
         position.setMegaCampaignId(campaignId);
         position.setStartKey(request.getStartKey());
         position.setStartData(request.getStartData());
-
+        System.out.println("Saving start position for user " + userId + " in campaign " + campaignId + ": " + request.getStartKey());
+        System.out.println("Start data: " + (request.getStartData() != null ? request.getStartData().length() : "null") + " characters");
         MegaStartPosition saved = megaStartPositionRepository.save(position);
         return ResponseEntity.ok(MegaStartPositionView.fromMegaStartPosition(saved));
     }
@@ -158,7 +159,7 @@ public class AssignmentController {
         List<MegaStartPositionView> result = positions.stream()
             .map(MegaStartPositionView::fromMegaStartPosition)
             .collect(Collectors.toList());
-
+                System.out.println("Get all start positions for campaign " + campaignId + ": " + result.size() + " positions found");
         return ResponseEntity.ok(result);
     }
 
@@ -171,7 +172,12 @@ public class AssignmentController {
             .orElseThrow();
 
         MegaStartPosition position = megaStartPositionRepository.findByUserIdAndMegaCampaignId(userId, campaignId)
-            .orElseThrow();
+            .orElse(null);
+
+        System.out.println("Get start position for user " + userId + " in campaign " + campaignId + ": " + (position != null ? position.getStartKey() : "not found"));
+        if (position == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok(MegaStartPositionView.fromMegaStartPosition(position));
     }

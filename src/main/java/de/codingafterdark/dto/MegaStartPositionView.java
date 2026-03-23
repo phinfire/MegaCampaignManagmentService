@@ -8,16 +8,16 @@ import de.codingafterdark.assignment.MegaStartPosition;
 @Data
 @AllArgsConstructor
 public class MegaStartPositionView {
-    @JsonProperty("user_id")
+    @JsonProperty("userId")
     private String userId;
 
-    @JsonProperty("mega_campaign_id")
+    @JsonProperty("megaCampaignId")
     private Long megaCampaignId;
 
-    @JsonProperty("start_key")
+    @JsonProperty("startKey")
     private String startKey;
 
-    @JsonProperty("start_data")
+    @JsonProperty("startData")
     private String startData;
 
     public static MegaStartPositionView fromMegaStartPosition(MegaStartPosition position) {
