@@ -1,101 +1,56 @@
+# Mega Campaign Management Service
+
+Spring Boot API for managing mega campaigns with signup assignments.
+
 ## API Endpoints
 
-### SignupController
+### Health
+- `GET /health` - Service health check
 
-- **POST /campaigns/{campaignId}/signups**
-	- Headers: `Authorization: Bearer <token>`
-	- Body:
-		```json
-		{
-			"userId": "",
-			"preferenceKeys": []
-		}
-		```
-	- Creates a signup for a campaign.
+### Campaigns
+- `GET /campaigns` - List all campaigns  
+  **Returns:** `List<MegaCampaign>`
+- `POST /campaigns` - Create campaign (admin only)  
+  **Returns:** `MegaCampaign`
+- `PATCH /campaigns/{id}` - Update campaign (admin only)  
+  **Input:** `MegaCampaignUpdate`  
+  **Returns:** `MegaCampaign`
+- `DELETE /campaigns/{id}` - Delete campaign (admin only)
 
-- **GET /campaigns/{campaignId}/signups/count**
-	- Returns the count of distinct users signed up for a campaign.
+### Signups
+- `GET /campaigns/{campaignId}/signups/count` - Get unique signup count  
+  **Returns:** `Long`
+- `GET /campaigns/{campaignId}/signup/{userId}` - Get latest signup for user  
+  **Returns:** `Signup`
+- `GET /campaigns/{campaignId}/signups` - List latest signups for campaign  
+  **Returns:** `List<SignupLatestView>`
+- `GET /campaigns/{campaignId}/signups/{userId}` - Get latest signup for specific user  
+  **Returns:** `SignupLatestView`
+- `GET /campaigns/{campaignId}/signups/moderator/users` - List all signed-up user IDs (moderator only)  
+  **Returns:** `List<String>`
+- `POST /campaigns/{campaignId}/signups` - Create signup (authenticated)  
+  **Input:** `SignupRequest`  
+  **Returns:** `Signup`
+- `POST /campaigns/{campaignId}/signups/{userId}` - Create signup for user (admin or self)  
+  **Input:** `SignupRequest`  
+  **Returns:** `Signup`
+- `DELETE /campaigns/{campaignId}/signup/{userId}` - Delete signup (admin or self)
 
-- **GET /campaigns/{campaignId}/signups/latest**
-	- Returns the latest signup for each user in a campaign.
+### Assignments
+- `GET /campaigns/{campaignId}/assignments` - List assignments  
+  **Returns:** `List<AssignmentView>`
+- `PUT /campaigns/{campaignId}/assignments` - Batch update assignments (admin only)  
+  **Input:** `AssignmentRequest`  
+  **Returns:** `List<AssignmentView>`
+- `POST /campaigns/{campaignId}/assignments/{userId}/{regionKey}` - Set assignment (admin only)  
+  **Returns:** `AssignmentView`
+- `DELETE /campaigns/{campaignId}/assignments/{userId}` - Delete assignment (admin only)
 
-- **GET /campaigns/{campaignId}/signups**
-	- Headers: `Authorization: Bearer <token>` (admin only)
-	- Returns the full signup history for a campaign.
-
----
-
-### AssignmentController
-
-- **PUT /campaigns/{campaignId}/assignments**
-	- Headers: `Authorization: Bearer <token>` (admin only)
-	- Body:
-		```json
-		{
-			"assignments": [
-				{
-					"userId": "",
-					"regionKey": ""
-				}
-			]
-		}
-		```
-	- Updates assignments for a campaign.
-
-- **GET /campaigns/{campaignId}/assignments**
-	- Headers: `Authorization: Bearer <token>` (admin only)
-	- Returns all assignments for a campaign.
-
----
-
-### MegaCampaignController
-
-- **GET /campaigns**
-	- Returns all campaigns.
-
-- **POST /campaigns?name=...**
-	- Headers: `Authorization: Bearer <token>` (admin only)
-	- Creates a new campaign.
-
-- **PATCH /campaigns/{id}**
-	- Headers: `Authorization: Bearer <token>` (admin only)
-	- Body:
-		```json
-		{
-			"name": "",
-			"signupsOpen": "",
-			"signupDeadlineDate": "",
-			"pickDeadline": "",
-			"firstSessionDate": "",
-			"firstEu4SessionDate": "",
-			"moderatorIds": [],
-			"ck3LobbiesIdentifiers": [],
-			"eu4LobbiesIdentifiers": [],
-			"vic3LobbyIdentifiers": [],
-			"possibleKeys": [],
-			"ck3MapGeoJsonUrl": "",
-			"ck3RegionsConfigUrl": "",
-			"nationsJsonUrl": ""
-		}
-		```
-	- Updates campaign details.
-
-- **DELETE /campaigns/{id}**
-	- Headers: `Authorization: Bearer <token>` (admin only)
-	- Deletes a campaign.
-
----
-
-### MiscController
-
-- **GET /health**
-	- Returns status and timestamp for health check.
-
----
-
-### Notes for Frontend Developers
-
-- All endpoints requiring authentication expect an `Authorization` header with a valid JWT token.
-- Request bodies should use the JSON structure shown above, with keys only (values are examples or left blank).
-- For more details on response formats, see the corresponding DTO classes in the backend code.
-- If you need a more formal API spec, consider generating an OpenAPI/Swagger document in the future.
+### Start Positions
+- `GET /campaigns/{campaignId}/start-positions` - List all start positions  
+  **Returns:** `List<MegaStartPositionView>`
+- `GET /campaigns/{campaignId}/start-positions/{userId}` - Get start position for user  
+  **Returns:** `MegaStartPositionView`
+- `POST /campaigns/{campaignId}/start-positions/{userId}` - Set start position (self only)  
+  **Input:** `MegaStartPositionRequest`  
+  **Returns:** `MegaStartPositionView`
